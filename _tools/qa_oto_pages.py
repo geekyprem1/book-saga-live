@@ -31,8 +31,15 @@ for f in files:
     video = len(re.findall(r"<video|\.mp4|youtube\.com|youtu\.be|vimeo\.com|wistia", h, re.I))
     downsell = len(re.findall(r"ds\d\.html", h, re.I))
 
+    bgs = re.findall(r"bs-bg-([0-9a-f]{8})\b", h)
+    css = open(os.path.join("css", "oto.css"), encoding="utf-8").read()
+    bgs_missing = sorted({b for b in bgs if b not in css})
+    unique_bgs = len(set(bgs))
+    adjacent_dupe = sum(1 for a, b in zip(bgs, bgs[1:]) if a == b)
+
     ok = (decision_last and not broken and not badimg and h1 == 1
-          and len(secs) >= 10 and credit == 0 and video == 0 and downsell == 0)
+          and len(secs) >= 10 and credit == 0 and video == 0 and downsell == 0
+          and len(bgs) == len(secs) and not bgs_missing and adjacent_dupe == 0)
     allok = allok and ok
 
     print("%-10s %-5d %-4d %-10s %-9s %-8s %-8s %-8s %s" % (
@@ -43,6 +50,9 @@ for f in files:
         "ok" if credit == 0 else "%d credit!" % credit,
         "ok" if video == 0 else "VIDEO!",
         "" if ok else "<-- FAIL"))
+    print("%-10s   backgrounds: %d/%d sections, %d unique, missing=%s, adjacent-dupes=%d" % (
+        "", len(bgs), len(secs), unique_bgs,
+        ",".join(bgs_missing) if bgs_missing else "none", adjacent_dupe))
 
 print()
 print("ALL OK" if allok else "ISSUES FOUND")

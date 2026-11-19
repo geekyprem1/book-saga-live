@@ -25,6 +25,7 @@ body = m.group(0)
 if prefix:
     # The preview lives one level down, so relative asset paths need ../.
     body = re.sub(r'(src|href)="(images|css|js|f)/', r'\1="%s\2/' % prefix, body)
+    body = re.sub(r"url\('(images|css|js|f)/", r"url('%s\1/" % prefix, body)
 
 page = """<!DOCTYPE html>
 <html lang="en"><head>

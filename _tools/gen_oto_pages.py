@@ -1132,6 +1132,67 @@ window.BS_CFG = {
 """
 
 
+# --------------------------------------------------------------------------- backgrounds
+# Every booksaga-bg-* artwork, split by how light the plate is. The light ones
+# only work behind dark text, the dark ones only behind white text, so the page
+# alternates themes down its length (which is also how the FE page uses them).
+# Served from images/bg/*.webp — the source PNGs are ~1.6 MB each, the WebP
+# derivatives are ~15 KB, so all seventeen cost about 300 KB in total.
+LIGHT_BGS = [
+    "33897742", "342f524c", "3664a8dc", "94759be5", "95a9f497",
+    "a2516077", "bacb810f", "bc629c1c", "e36283e1",
+]
+
+DARK_BGS = [
+    "4af93e7d", "4fb0e65a", "8d92763c", "983a9dc1",
+    "9fcb1f03", "a0802078", "d3fae72c", "e867b41b",
+]
+
+SECTION_RE = re.compile(r"<section\b[^>]*>")
+
+
+def apply_backgrounds(html, page_index):
+    """Give every section its own background artwork.
+
+    The first two sections (order confirmed + hero) stay dark so the page opens
+    the way it always did. After that themes alternate: paper, dark, paper...
+    which uses each of the nine light plates exactly once per page.
+    A per-page rotation keeps two OTOs from looking identical.
+
+    The artwork is attached as a .bs-bg-<hash> class rather than an inline
+    style: a relative url() inside a custom property resolves against the
+    stylesheet that declares it, so the paths live in css/oto.css.
+    """
+    light_i = (page_index * 2) % len(LIGHT_BGS)
+    dark_i = (page_index * 3) % len(DARK_BGS)
+
+    out = []
+    pos = 0
+    for idx, m in enumerate(SECTION_RE.finditer(html)):
+        out.append(html[pos:m.start()])
+        tag = m.group(0)
+
+        paper = idx >= 2 and idx % 2 == 0 and "bs-decision" not in tag
+        if paper:
+            art = LIGHT_BGS[light_i % len(LIGHT_BGS)]
+            light_i += 1
+        else:
+            art = DARK_BGS[dark_i % len(DARK_BGS)]
+            dark_i += 1
+
+        classes = "bs-has-bg bs-bg-%s%s" % (art, " bs-sec--paper" if paper else "")
+        if 'class="' in tag:
+            tag = tag.replace('class="', 'class="%s ' % classes, 1)
+        else:
+            tag = tag[:-1] + ' class="%s">' % classes
+
+        out.append(tag)
+        pos = m.end()
+
+    out.append(html[pos:])
+    return "".join(out)
+
+
 def build(page):
     ctx = dict(page)
     ctx["steps"] = steps_html(page["num"])
@@ -1158,6 +1219,8 @@ def build(page):
 
     if "{{" in html:
         raise SystemExit("unreplaced placeholder in %s" % page["slug"])
+
+    html = apply_backgrounds(html, page["num"] - 1)
 
     # Hard content rules for these pages.
     if re.search(r"credit", html, re.I):
