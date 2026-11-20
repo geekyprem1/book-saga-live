@@ -39,13 +39,6 @@
   var notice = document.getElementById('bs-checkout-notice');
   if (notice && buy) notice.hidden = true;
 
-  /* Mark the current step in the top progress rail. */
-  var rail = document.querySelector('.bs-steps');
-  if (rail && cfg.step) {
-    var el = rail.querySelector('[data-step="' + cfg.step + '"]');
-    if (el) el.classList.add('is-now');
-  }
-
   /* Reveal-on-scroll. Fail-safe: content is only hidden once this script has
      run, and a timer un-hides everything shortly after load no matter what.
      If JS never executes, every section stays visible. */

@@ -707,15 +707,6 @@ PAGES.append({
 
 
 # --------------------------------------------------------------------------- render helpers
-def steps_html(current):
-    labels = ["FE"] + ["OTO %d" % i for i in range(1, 6)]
-    out = []
-    for i, lab in enumerate(labels):
-        cls = "bs-step is-done" if i < current else ("bs-step is-now" if i == current else "bs-step")
-        out.append('<span class="%s" data-step="%d"><i class="bs-step-dot"></i><span>%s</span></span>' % (cls, i, lab))
-    return '<div class="bs-steps">%s</div>' % "".join(out)
-
-
 def stops_html(page):
     rows = "".join(
         '<tr><td>%s</td><td>%s</td><td class="is-hi">%s</td></tr>' % (a, b, c)
@@ -967,28 +958,19 @@ PAGE_TMPL = """<!DOCTYPE html>
 <script>
 window.BS_CFG = {
   buy: "",
-  no: "{{no_url}}",
-  step: {{num}}
+  no: "{{no_url}}"
 };
 </script>
 </head>
 
 <body class="bs-oto">
 
-<!-- ===================================================== 1 · TOP BAR + PROGRESS -->
-<div class="bs-topbar">
-  <div class="bs-topbar-in">
-    <a class="bs-brand" href="index.html">
-      <img src="images/booksaga-logo.png" alt="BookSaga">
-      <span>BookSaga</span>
-    </a>
-    {{steps}}
-    <span class="bs-secure">
-      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 11V7a5 5 0 0 1 10 0v4"/><path d="M5 11h14v10a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2z"/></svg>
-      <span>Secure checkout</span>
-    </span>
-  </div>
-</div>
+<!-- ===================================================== 1 · HEADER (centred logo, light) -->
+<header class="bs-header">
+  <a class="bs-header__logo" href="index.html" aria-label="BookSaga home">
+    <img src="images/booksaga-lockup.svg" alt="BookSaga" width="152" height="38">
+  </a>
+</header>
 
 <!-- ===================================================== 2 · CONGRATULATIONS -->
 <section class="bs-sec bs-sec--tight">
@@ -1195,7 +1177,6 @@ def apply_backgrounds(html, page_index):
 
 def build(page):
     ctx = dict(page)
-    ctx["steps"] = steps_html(page["num"])
     ctx["problems"] = cards_html(page["problems"], cols=4)
     ctx["unlocks"] = cards_html(page["unlocks"], cols=4)
     ctx["how"] = how_html(page["how"])
